@@ -1,8 +1,10 @@
 package com.diva.restofinder.model
 
+import androidx.room.Entity
 import com.google.gson.annotations.SerializedName
 import java.io.Serializable
 
+@Entity(tableName = "tbl_restaurants")
 data class RestaurantResponseDto(
     val id: String? = null,
     val name: String? = null,

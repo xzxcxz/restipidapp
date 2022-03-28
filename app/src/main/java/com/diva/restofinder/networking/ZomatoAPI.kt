@@ -2,6 +2,7 @@ package com.diva.restofinder.networking
 
 import com.diva.restofinder.model.CollectionResponseDto
 import com.diva.restofinder.model.GeocodeResponseDto
+import com.diva.restofinder.model.RestaurantDetailResponseDto
 import com.diva.restofinder.model.RestaurantResponseDto
 import retrofit2.Response
 import retrofit2.http.GET
@@ -28,7 +29,7 @@ interface ZomatoAPI {
     @GET(ApiEndpoint.DetailRestaurant)
     suspend fun getRestaurantDetail(
         @Query("res_id") restaurantId: String
-    ): Response<RestaurantResponseDto>
+    ): Response<RestaurantDetailResponseDto>
 
     @Headers("user-key", "b47b1abf3c3436d473570116cd8a2621")
     @GET(ApiEndpoint.SearchEndpoint)
@@ -39,6 +40,6 @@ interface ZomatoAPI {
         @Query("radius") radius: Int = 20000,
         @Query("sort") sort: String = "cost",
         @Query("order") order: String = "asc"
-    ): Response<RestaurantResponseDto>
+    ): Response<List<RestaurantResponseDto>>
 
 }

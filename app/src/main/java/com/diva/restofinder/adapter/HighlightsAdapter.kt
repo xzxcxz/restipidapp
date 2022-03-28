@@ -9,18 +9,19 @@ import com.diva.restofinder.R
 import com.diva.restofinder.model.HighlightResponseDto
 import kotlinx.android.synthetic.main.list_item_highlights.view.*
 
-class HighlightsAdapter (
-
-    private val items: List<HighlightResponseDto>) : RecyclerView.Adapter<HighlightsAdapter.ViewHolder>() {
+class HighlightsAdapter(
+    private val items: List<String>
+) : RecyclerView.Adapter<HighlightsAdapter.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.list_item_highlights, parent, false)
+        val view = LayoutInflater.from(parent.context)
+            .inflate(R.layout.list_item_highlights, parent, false)
         return ViewHolder(view)
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val data = items[position]
-        holder.tvHighlights.text = data.highlights
+        holder.tvHighlights.text = data
     }
 
     override fun getItemCount(): Int {
