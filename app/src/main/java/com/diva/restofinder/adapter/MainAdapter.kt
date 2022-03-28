@@ -10,7 +10,7 @@ import android.widget.TextView
 import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.RecyclerView
 import com.diva.restofinder.R
-import com.diva.restofinder.model.ModelMain
+import com.diva.restofinder.model.RestaurantResponseDto
 import com.diva.restofinder.utils.OnItemClickCallback
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
@@ -18,11 +18,11 @@ import com.bumptech.glide.load.resource.bitmap.CenterCrop
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import kotlinx.android.synthetic.main.list_item_main.view.*
 
-class MainAdapter (
+class MainAdapter(
+    private val mContext: Context, private val items: List<RestaurantResponseDto>
+) : RecyclerView.Adapter<MainAdapter.ViewHolder>() {
 
-    private val mContext: Context, private val items: List<ModelMain>) : RecyclerView.Adapter<MainAdapter.ViewHolder>() {
-
-    private var Rating = 0.0
+    private var rating = 0.0
 
     private var onItemClickCallback: OnItemClickCallback? = null
 
@@ -31,28 +31,29 @@ class MainAdapter (
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.list_item_main, parent, false)
+        val view =
+            LayoutInflater.from(parent.context).inflate(R.layout.list_item_main, parent, false)
         return ViewHolder(view)
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val data = items[position]
 
-        Rating = data.aggregateRating
+        rating = data.aggregateRating
 
         Glide.with(mContext)
-            .load(data.thumbResto)
+            .load(data.thumbRestaurant)
             .transform(CenterCrop(), RoundedCorners(25))
             .diskCacheStrategy(DiskCacheStrategy.ALL)
             .into(holder.imgResto)
 
-        val newValue = Rating.toFloat()
+        val newValue = rating.toFloat()
         holder.ratingResto.numStars = 5
         holder.ratingResto.stepSize = 0.5.toFloat()
         holder.ratingResto.rating = newValue
 
-        holder.tvNameResto.text = data.nameResto
-        holder.tvAddress.text = data.addressResto
+        holder.tvNameResto.text = data.name
+        holder.tvAddress.text = data.addressRestaurant
         holder.tvRating.text = " |  " + data.aggregateRating + " " + data.ratingText
         holder.cvListMain.setOnClickListener {
             onItemClickCallback?.onItemMainClicked(data)

@@ -1,7 +1,7 @@
 package com.diva.restofinder.utils
 
-import com.diva.restofinder.model.ModelMain
+import com.diva.restofinder.model.RestaurantResponseDto
 
 interface OnItemClickCallback {
-    fun onItemMainClicked(modelMainHorizontal: ModelMain?)
+    fun onItemMainClicked(restaurantResponseDtoHorizontal: RestaurantResponseDto?)
 }

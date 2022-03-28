@@ -8,6 +8,7 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
     <application
+        android:name=".RestipidApp"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -15,7 +16,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity android:name=".activities.DetailRestoActivity" />
-        <activity android:name=".activities.MainActivity"/>
+        <activity android:name=".activities.home.MainActivity"/>
         <activity android:name=".activities.SplashScreenActivity"
             android:exported= "true"
             tools:ignore="DuplicateActivity">

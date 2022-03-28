@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Handler
 import com.diva.restofinder.R
+import com.diva.restofinder.activities.home.MainActivity
 
 class SplashScreenActivity : AppCompatActivity() {
 
@@ -16,7 +17,7 @@ class SplashScreenActivity : AppCompatActivity() {
         handler = Handler()
         handler.postDelayed({
 
-            val intent = Intent(this,MainActivity::class.java)
+            val intent = Intent(this, MainActivity::class.java)
             startActivity(intent)
             finish()
         },  3000)

@@ -20,9 +20,8 @@ import com.androidnetworking.interfaces.JSONObjectRequestListener
 import com.diva.restofinder.R
 import com.diva.restofinder.adapter.HighlightsAdapter
 import com.diva.restofinder.adapter.ReviewAdapter
-import com.diva.restofinder.model.ModelHighlights
-import com.diva.restofinder.model.ModelMain
-import com.diva.restofinder.model.ModelReview
+import com.diva.restofinder.model.HighlightResponseDto
+import com.diva.restofinder.model.RestaurantResponseDto
 import com.diva.restofinder.networking.ApiEndpoint
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
@@ -35,9 +34,7 @@ class   DetailRestoActivity : AppCompatActivity() {
 
     private var mProgressBar: ProgressDialog? = null
     private var highlightsAdapter: HighlightsAdapter? = null
-    private var reviewAdapter: ReviewAdapter? = null
-    private val modelHighlights: MutableList<ModelHighlights> = ArrayList()
-    private val modelReview: MutableList<ModelReview> = ArrayList()
+    private val modelHighlightResponses: MutableList<HighlightResponseDto> = ArrayList()
 
     var RatingResto = 0.0
     var IdResto: String? = null
@@ -45,7 +42,7 @@ class   DetailRestoActivity : AppCompatActivity() {
     var Title: String? = null
     var Rating: String? = null
     var RestoName: String? = null
-    var modelMain: ModelMain? = null
+    var restaurantResponseDto: RestaurantResponseDto? = null
 
     @SuppressLint("Assert", "SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -68,14 +65,14 @@ class   DetailRestoActivity : AppCompatActivity() {
         assert(supportActionBar != null)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
-        modelMain = intent.getSerializableExtra(DETAIL_RESTO) as ModelMain
-        if (modelMain != null) {
-            IdResto = modelMain?.idResto
-            ImageCover = modelMain?.thumbResto
-            RatingResto = modelMain!!.aggregateRating
-            Title = modelMain?.nameResto
-            Rating = modelMain?.ratingText
-            RestoName = modelMain?.nameResto
+        restaurantResponseDto = intent.getSerializableExtra(DETAIL_RESTO) as RestaurantResponseDto
+        if (restaurantResponseDto != null) {
+            IdResto = restaurantResponseDto?.id
+            ImageCover = restaurantResponseDto?.thumbRestaurant
+            RatingResto = restaurantResponseDto!!.rating.ratingValue
+            Title = restaurantResponseDto?.name
+            Rating = restaurantResponseDto?.rating?.ratingText
+            RestoName = restaurantResponseDto?.name
 
             tvTitle.setText(Title)
             tvRestoName.setText(RestoName)
@@ -97,23 +94,15 @@ class   DetailRestoActivity : AppCompatActivity() {
 
             //method get Detail
             getDetailResto()
-
-            //method get Review
-            getReviewResto()
         }
     }
 
     private fun showRecyclerViewList() {
-        highlightsAdapter = HighlightsAdapter(modelHighlights)
-        reviewAdapter = ReviewAdapter(this, modelReview)
+        highlightsAdapter = HighlightsAdapter(modelHighlightResponses)
 
         rvHighlights.setLayoutManager(LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false))
         rvHighlights.setHasFixedSize(true)
         rvHighlights.setAdapter(highlightsAdapter)
-
-        rvReviewResto.setLayoutManager(LinearLayoutManager(this))
-        rvReviewResto.setHasFixedSize(true)
-        rvReviewResto.setAdapter(reviewAdapter)
     }
 
     private fun getDetailResto() {
@@ -130,10 +119,8 @@ class   DetailRestoActivity : AppCompatActivity() {
                         val jsonArrayOne = response.getJSONArray("highlights")
 
                         for (i in 0 until jsonArrayOne.length()) {
-                            val dataApi = ModelHighlights()
-                            val highlights = jsonArrayOne[i].toString()
-                            dataApi.highlights = highlights
-                            modelHighlights.add(dataApi)
+                            val dataApi = HighlightResponseDto(listOf("One", "Two", "Three"))
+                            modelHighlightResponses.add(dataApi)
                         }
 
                         val jsonObjectData = response.getJSONObject("location")
@@ -193,44 +180,44 @@ class   DetailRestoActivity : AppCompatActivity() {
             })
     }
 
-    private fun getReviewResto() {
-        mProgressBar?.show()
-        AndroidNetworking.get(ApiEndpoint.BASEURL + ApiEndpoint.ReviewRestaurant + IdResto)
-            .addHeaders("user-key", "b47b1abf3c3436d473570116cd8a2621")
-            .setPriority(Priority.HIGH)
-            .build()
-            .getAsJSONObject(object : JSONObjectRequestListener {
-                override fun onResponse(response: JSONObject) {
-                    try {
-                        mProgressBar?.dismiss()
-                        val jsonArray = response.getJSONArray("user_reviews")
-
-                        for (i in 0 until jsonArray.length()) {
-                            val jsonObject = jsonArray.getJSONObject(i)
-                            val dataApi = ModelReview()
-                            val jsonObjectDataOne = jsonObject.getJSONObject("review")
-                            val jsonObjectDataTwo = jsonObjectDataOne.getJSONObject("user")
-                            dataApi.ratingReview = jsonObjectDataOne.getDouble("rating")
-                            dataApi.reviewText = jsonObjectDataOne.getString("review_text")
-                            dataApi.reviewTime = jsonObjectDataOne.getString("review_time_friendly")
-                            dataApi.nameUser = jsonObjectDataTwo.getString("name")
-                            dataApi.profileImage = jsonObjectDataTwo.getString("profile_image")
-                            modelReview.add(dataApi)
-                        }
-
-                        reviewAdapter?.notifyDataSetChanged()
-                    } catch (e: JSONException) {
-                        e.printStackTrace()
-                        Toast.makeText(this@DetailRestoActivity, "Failed to display data!", Toast.LENGTH_SHORT).show()
-                    }
-                }
-
-                override fun onError(anError: ANError) {
-                    mProgressBar?.dismiss()
-                    Toast.makeText(this@DetailRestoActivity, "No internet connection !", Toast.LENGTH_SHORT).show()
-                }
-            })
-    }
+//    private fun getReviewResto() {
+//        mProgressBar?.show()
+//        AndroidNetworking.get(ApiEndpoint.BASEURL + ApiEndpoint.ReviewRestaurant + IdResto)
+//            .addHeaders("user-key", "b47b1abf3c3436d473570116cd8a2621")
+//            .setPriority(Priority.HIGH)
+//            .build()
+//            .getAsJSONObject(object : JSONObjectRequestListener {
+//                override fun onResponse(response: JSONObject) {
+//                    try {
+//                        mProgressBar?.dismiss()
+//                        val jsonArray = response.getJSONArray("user_reviews")
+//
+//                        for (i in 0 until jsonArray.length()) {
+//                            val jsonObject = jsonArray.getJSONObject(i)
+//                            val dataApi = ReviewDto()
+//                            val jsonObjectDataOne = jsonObject.getJSONObject("review")
+//                            val jsonObjectDataTwo = jsonObjectDataOne.getJSONObject("user")
+//                            dataApi.ratingReview = jsonObjectDataOne.getDouble("rating")
+//                            dataApi.reviewText = jsonObjectDataOne.getString("review_text")
+//                            dataApi.reviewTime = jsonObjectDataOne.getString("review_time_friendly")
+//                            dataApi.nameUser = jsonObjectDataTwo.getString("name")
+//                            dataApi.profileImage = jsonObjectDataTwo.getString("profile_image")
+//                            reviewDto.add(dataApi)
+//                        }
+//
+//                        reviewAdapter?.notifyDataSetChanged()
+//                    } catch (e: JSONException) {
+//                        e.printStackTrace()
+//                        Toast.makeText(this@DetailRestoActivity, "Failed to display data!", Toast.LENGTH_SHORT).show()
+//                    }
+//                }
+//
+//                override fun onError(anError: ANError) {
+//                    mProgressBar?.dismiss()
+//                    Toast.makeText(this@DetailRestoActivity, "No internet connection !", Toast.LENGTH_SHORT).show()
+//                }
+//            })
+//    }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (item.itemId == android.R.id.home) {

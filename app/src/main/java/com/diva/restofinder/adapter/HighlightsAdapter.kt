@@ -6,12 +6,12 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.diva.restofinder.R
-import com.diva.restofinder.model.ModelHighlights
+import com.diva.restofinder.model.HighlightResponseDto
 import kotlinx.android.synthetic.main.list_item_highlights.view.*
 
 class HighlightsAdapter (
 
-    private val items: List<ModelHighlights>) : RecyclerView.Adapter<HighlightsAdapter.ViewHolder>() {
+    private val items: List<HighlightResponseDto>) : RecyclerView.Adapter<HighlightsAdapter.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.list_item_highlights, parent, false)

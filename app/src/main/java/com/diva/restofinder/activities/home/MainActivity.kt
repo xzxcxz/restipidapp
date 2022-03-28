@@ -1,4 +1,4 @@
-package com.diva.restofinder.activities
+package com.diva.restofinder.activities.home
 
 import android.Manifest
 import android.app.Activity
@@ -26,10 +26,11 @@ import com.androidnetworking.common.Priority
 import com.androidnetworking.error.ANError
 import com.androidnetworking.interfaces.JSONObjectRequestListener
 import com.diva.restofinder.R
+import com.diva.restofinder.activities.DetailRestoActivity
 import com.diva.restofinder.adapter.MainAdapter
 import com.diva.restofinder.adapter.MainAdapterHorizontal
-import com.diva.restofinder.model.ModelMain
-import com.diva.restofinder.model.ModelMainHorizontal
+import com.diva.restofinder.model.CollectionDataDto
+import com.diva.restofinder.model.RestaurantResponseDto
 import com.diva.restofinder.networking.ApiEndpoint
 import com.diva.restofinder.utils.OnItemClickCallback
 import kotlinx.android.synthetic.main.activity_main.*
@@ -42,10 +43,11 @@ class  MainActivity : AppCompatActivity(), LocationListener {
     private var mainAdapterHorizontal: MainAdapterHorizontal? = null
     private var mainAdapter: MainAdapter? = null
     private var mProgressBar: ProgressDialog? = null
-    private val modelMainHorizontal: MutableList<ModelMainHorizontal> = ArrayList()
-    private var modelMain: MutableList<ModelMain> = ArrayList()
+    private val collections: MutableList<CollectionDataDto> = ArrayList()
+    private var restaurants: MutableList<RestaurantResponseDto> = ArrayList()
     var lat: Double? = null
     var lng: Double? = null
+
     var permissionArrays = arrayOf(Manifest.permission.ACCESS_FINE_LOCATION,
         Manifest.permission.ACCESS_COARSE_LOCATION)
 
@@ -96,25 +98,25 @@ class  MainActivity : AppCompatActivity(), LocationListener {
         val searchPlate = searchResto.findViewById<View>(searchPlateId)
         searchPlate?.setBackgroundColor(Color.TRANSPARENT)
 
-        //method recyclerview
-        showRecyclerResto()
+        // method to show recyclerview and attach adapter.
+        showRecyclerRestaurant()
 
-        //method get lokasi
+        // method get location (latitude and longitude)
         getLatLong()
     }
 
-    private fun showRecyclerResto() {
-        mainAdapterHorizontal = MainAdapterHorizontal(this, modelMainHorizontal)
-        mainAdapter = MainAdapter(this, modelMain)
+    private fun showRecyclerRestaurant() {
+        mainAdapterHorizontal = MainAdapterHorizontal(this, collections)
+        mainAdapter = MainAdapter(this, restaurants)
 
-        rvRestaurantsNearby.setLayoutManager(LinearLayoutManager(this))
+        rvRestaurantsNearby.layoutManager = LinearLayoutManager(this)
         rvRestaurantsNearby.setHasFixedSize(true)
-        rvRestaurantsNearby.setAdapter(mainAdapter)
+        rvRestaurantsNearby.adapter = mainAdapter
 
         mainAdapter?.setOnItemClickCallback(object : OnItemClickCallback {
-            override fun onItemMainClicked(modelMain: ModelMain?) {
+            override fun onItemMainClicked(restaurantResponseDto: RestaurantResponseDto?) {
                 val intent = Intent(this@MainActivity, DetailRestoActivity::class.java)
-                intent.putExtra(DetailRestoActivity.DETAIL_RESTO, modelMain)
+                intent.putExtra(DetailRestoActivity.DETAIL_RESTO, restaurantResponseDto)
                 startActivity(intent)
             }
         })
@@ -128,6 +130,7 @@ class  MainActivity : AppCompatActivity(), LocationListener {
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 115)
             return
         }
+
         val locationManager = getSystemService(LOCATION_SERVICE) as LocationManager
         val criteria = Criteria()
         val provider = locationManager.getBestProvider(criteria, true)
@@ -136,10 +139,10 @@ class  MainActivity : AppCompatActivity(), LocationListener {
         if (location != null) {
             onLocationChanged(location)
 
-            //method get Collection
+            // method to get list of restaurants at first run of application.
             getListCollection()
 
-            //method get Daftar Resto
+            // method to get list of restaurants at first run of application.
             getListResto()
 
         } else {
@@ -154,7 +157,7 @@ class  MainActivity : AppCompatActivity(), LocationListener {
 
     private fun setSearchResto(query: String) {
         mProgressBar?.show()
-        AndroidNetworking.get(ApiEndpoint.BASEURL + ApiEndpoint.CariResto + query + "&lat=" + lat + "&lon=" + lng + "&radius=20000")
+        AndroidNetworking.get("${ApiEndpoint.BASEURL}${ApiEndpoint.SearchEndpoint}$query&lat=$lat&lon=$lng&radius=20000&sort=cost&order=asc")
             .addHeaders("user-key", "b47b1abf3c3436d473570116cd8a2621")
             .setPriority(Priority.HIGH)
             .build()
@@ -162,26 +165,26 @@ class  MainActivity : AppCompatActivity(), LocationListener {
                 override fun onResponse(response: JSONObject) {
                     try {
                         mProgressBar?.dismiss()
-                        if (modelMain.isNotEmpty()) modelMain.clear()
+                        if (restaurants.isNotEmpty()) restaurants.clear()
                         val jsonArray = response.getJSONArray("restaurants")
 
                         for (i in 0 until jsonArray.length()) {
                             val jsonObject = jsonArray.getJSONObject(i)
-                            val dataApi = ModelMain()
+                            val dataApi = RestaurantResponseDto()
                             val jsonObjectData = jsonObject.getJSONObject("restaurant")
                             val jsonObjectDataTwo = jsonObjectData.getJSONObject("user_rating")
                             val AggregateRating = jsonObjectDataTwo.getDouble("aggregate_rating")
                             val jsonObjectDataThree = jsonObjectData.getJSONObject("location")
 
-                            dataApi.idResto = jsonObjectData.getString("id")
-                            dataApi.nameResto = jsonObjectData.getString("name")
-                            dataApi.thumbResto = jsonObjectData.getString("thumb")
+                            dataApi.id = jsonObjectData.getString("id")
+                            dataApi.name = jsonObjectData.getString("name")
+                            dataApi.thumbRestaurant = jsonObjectData.getString("thumb")
                             dataApi.ratingText = jsonObjectDataTwo.getString("rating_text")
-                            dataApi.addressResto = jsonObjectDataThree.getString("locality_verbose")
+                            dataApi.addressRestaurant = jsonObjectDataThree.getString("locality_verbose")
                             dataApi.aggregateRating = AggregateRating
-                            modelMain.add(dataApi)
+                            restaurants.add(dataApi)
                         }
-                        showRecyclerResto()
+                        showRecyclerRestaurant()
                         mainAdapter?.notifyDataSetChanged()
                     } catch (e: JSONException) {
                         e.printStackTrace()
@@ -210,14 +213,14 @@ class  MainActivity : AppCompatActivity(), LocationListener {
 
                         for (i in 0 until jsonArray.length()) {
                             val jsonObject = jsonArray.getJSONObject(i)
-                            val dataApi = ModelMainHorizontal()
+                            val dataApi = HorizontalDto()
                             val jsonObjectData = jsonObject.getJSONObject("collection")
 
                             dataApi.imageUrl = jsonObjectData.getString("image_url")
-                            dataApi.urlResto = jsonObjectData.getString("url")
+                            dataApi.urlRestaurant = jsonObjectData.getString("url")
                             dataApi.title = jsonObjectData.getString("title")
                             dataApi.description = jsonObjectData.getString("description")
-                            modelMainHorizontal.add(dataApi)
+                            collections.add(dataApi)
                         }
                         mainAdapterHorizontal?.notifyDataSetChanged()
                     } catch (e: JSONException) {
@@ -243,26 +246,26 @@ class  MainActivity : AppCompatActivity(), LocationListener {
                 override fun onResponse(response: JSONObject) {
                     try {
                         mProgressBar?.dismiss()
-                        modelMain = ArrayList()
+                        restaurants = ArrayList()
                         val jsonArray = response.getJSONArray("nearby_restaurants")
 
                         for (i in 0 until jsonArray.length()) {
                             val jsonObject = jsonArray.getJSONObject(i)
-                            val dataApi = ModelMain()
+                            val dataApi = RestaurantResponseDto()
                             val jsonObjectData = jsonObject.getJSONObject("restaurant")
                             val jsonObjectDataTwo = jsonObjectData.getJSONObject("user_rating")
                             val AggregateRating = jsonObjectDataTwo.getDouble("aggregate_rating")
                             val jsonObjectDataThree = jsonObjectData.getJSONObject("location")
 
-                            dataApi.idResto = jsonObjectData.getString("id")
-                            dataApi.nameResto = jsonObjectData.getString("name")
-                            dataApi.thumbResto = jsonObjectData.getString("thumb")
+                            dataApi.id = jsonObjectData.getString("id")
+                            dataApi.name = jsonObjectData.getString("name")
+                            dataApi.thumbRestaurant = jsonObjectData.getString("thumb")
                             dataApi.ratingText = jsonObjectDataTwo.getString("rating_text")
-                            dataApi.addressResto = jsonObjectDataThree.getString("locality_verbose")
+                            dataApi.addressRestaurant = jsonObjectDataThree.getString("locality_verbose")
                             dataApi.aggregateRating = AggregateRating
-                            modelMain.add(dataApi)
+                            restaurants.add(dataApi)
                         }
-                        showRecyclerResto()
+                        showRecyclerRestaurant()
                         mainAdapter?.notifyDataSetChanged()
                     } catch (e: JSONException) {
                         e.printStackTrace()

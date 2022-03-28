@@ -9,7 +9,6 @@ import android.widget.RatingBar
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.diva.restofinder.R
-import com.diva.restofinder.model.ModelReview
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import kotlinx.android.synthetic.main.list_item_review.view.*
@@ -17,7 +16,7 @@ import kotlinx.android.synthetic.main.list_item_review.view.*
 
 class ReviewAdapter (
 
-    private val mContext: Context, private val items: List<ModelReview>) : RecyclerView.Adapter<ReviewAdapter.ViewHolder>() {
+    private val mContext: Context, private val items: List<ReviewDto>) : RecyclerView.Adapter<ReviewAdapter.ViewHolder>() {
 
     private var Rating = 0.0
 

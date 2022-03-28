@@ -8,14 +8,13 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.diva.restofinder.R
-import com.diva.restofinder.model.ModelMainHorizontal
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import kotlinx.android.synthetic.main.list_item_main_horizontal.view.*
 
 class MainAdapterHorizontal (
 
-    private val mContext: Context, private val items: List<ModelMainHorizontal>)
+    private val mContext: Context, private val items: List<HorizontalDto>)
     : RecyclerView.Adapter<MainAdapterHorizontal.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
