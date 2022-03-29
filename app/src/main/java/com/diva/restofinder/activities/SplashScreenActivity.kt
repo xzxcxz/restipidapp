@@ -1,6 +1,8 @@
 package com.diva.restofinder.activities
 
+import android.content.Context
 import android.content.Intent
+import android.net.ConnectivityManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Handler
@@ -17,9 +19,20 @@ class SplashScreenActivity : AppCompatActivity() {
         handler = Handler()
         handler.postDelayed({
 
-            val intent = Intent(this, MainActivity::class.java)
-            startActivity(intent)
-            finish()
+            if(isNetworkAvailable()) {
+                val intent = Intent(this, MainActivity::class.java)
+                startActivity(intent)
+                finish()
+            } else {
+                startActivity(Intent(this, FavoritesActivity::class.java))
+                finish()
+            }
         },  3000)
+    }
+
+    private fun isNetworkAvailable(): Boolean {
+        val conManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val internetInfo = conManager.activeNetworkInfo
+        return internetInfo != null && internetInfo.isConnected
     }
 }

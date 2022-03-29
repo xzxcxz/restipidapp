@@ -1,5 +1,6 @@
 package com.diva.restofinder.model
 
+import android.graphics.Bitmap
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.google.gson.annotations.SerializedName
@@ -35,6 +36,7 @@ data class RestaurantDetailResponseDto(
     @SerializedName("store_type")
     val storeType: String?,
     val thumb: String?,
+    var thumbBitmap: Bitmap? = null,
     val timings: String?,
     val url: String?,
 ): Serializable

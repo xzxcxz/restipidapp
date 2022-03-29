@@ -47,9 +47,15 @@ class FavoritesActivity : AppCompatActivity() {
         showRecyclerRestaurant()
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     private fun loadFavorites() {
         CoroutineScope(Dispatchers.IO).launch {
             restaurants = favoriteRestaurantDao.getAll()
+
+            withContext(Dispatchers.Main) {
+                showRecyclerRestaurant()
+                mainAdapter?.notifyDataSetChanged()
+            }
         }
     }
 
@@ -63,7 +69,7 @@ class FavoritesActivity : AppCompatActivity() {
         mainAdapter?.setOnItemClickCallback(object : OnMainAdapterCallback {
             override fun onItemMainClicked(restaurantResponseDto: RestaurantResponseDto) {
                 val intent = Intent(this@FavoritesActivity, DetailRestaurantActivity::class.java)
-                intent.putExtra(DetailRestaurantActivity.DETAIL, restaurantResponseDto?.restaurant)
+                intent.putExtra(DetailRestaurantActivity.DETAIL, restaurantResponseDto.restaurant)
                 intent.putExtra(DetailRestaurantActivity.IS_SAVED, true)
                 startActivity(intent)
             }
@@ -81,7 +87,7 @@ class FavoritesActivity : AppCompatActivity() {
                 isFavorite: Boolean
             ) {
                 if (!isFavorite) {
-                    restaurantResponseDto?.restaurant?.let {
+                    restaurantResponseDto.restaurant.let {
                         CoroutineScope(Dispatchers.IO).launch {
                             favoriteRestaurantDao.removeFromFavorites(it)
 
@@ -104,6 +110,7 @@ class FavoritesActivity : AppCompatActivity() {
                 }
             }
 
+            @SuppressLint("NotifyDataSetChanged")
             override fun onFavoriteClicked(restaurant: RestaurantDataDto, isFavorite: Boolean) {
                 if (!isFavorite) {
                     restaurant.let {

@@ -20,7 +20,7 @@ interface ZomatoAPI {
     suspend fun getGeocode(
         @Query("lat") latitude: String,
         @Query("lon") longitude: String
-    ): GeocodeResponseDto
+    ): Response<GeocodeResponseDto>
 
     @Headers("user-key: b47b1abf3c3436d473570116cd8a2621")
     @GET(ApiEndpoint.DetailRestaurant)

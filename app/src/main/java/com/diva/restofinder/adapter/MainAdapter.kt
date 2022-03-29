@@ -65,8 +65,10 @@ class MainAdapter(
                     })
 
                 if (data.restaurant.isFavorite) {
+                    holder.tvFavorites.text = "Remove From Favorites"
                     holder.imgFavorite.setImageResource(R.drawable.ic_favorite_checked)
                 } else {
+                    holder.tvFavorites.text = "Add to Favorites"
                     holder.imgFavorite.setImageResource(R.drawable.ic_favorite_uncheck)
                 }
 
@@ -86,8 +88,10 @@ class MainAdapter(
                     data.restaurant = data.restaurant.copy(isFavorite = !data.restaurant.isFavorite)
 
                     if (data.restaurant.isFavorite) {
+                        holder.tvFavorites.text = "Remove from Favorites"
                         holder.imgFavorite.setImageResource(R.drawable.ic_favorite_checked)
                     } else {
+                        holder.tvFavorites.text = "Add to Favorites"
                         holder.imgFavorite.setImageResource(R.drawable.ic_favorite_uncheck)
                     }
                     onMainAdapterCallback?.onFavoriteClicked(data, data.restaurant.isFavorite)
@@ -111,8 +115,10 @@ class MainAdapter(
                     })
 
                 if (data.isFavorite) {
+                    holder.tvFavorites.text = "Remove from Favorites"
                     holder.imgFavorite.setImageResource(R.drawable.ic_favorite_checked)
                 } else {
+                    holder.tvFavorites.text = "Add to Favorites"
                     holder.imgFavorite.setImageResource(R.drawable.ic_favorite_uncheck)
                 }
 
@@ -132,8 +138,10 @@ class MainAdapter(
                     data.isFavorite = !data.isFavorite
 
                     if (data.isFavorite) {
+                        holder.tvFavorites.text = "Remove from Favorites"
                         holder.imgFavorite.setImageResource(R.drawable.ic_favorite_checked)
                     } else {
+                        holder.tvFavorites.text = "Add to Favorites"
                         holder.imgFavorite.setImageResource(R.drawable.ic_favorite_uncheck)
                     }
                     onMainAdapterCallback?.onFavoriteClicked(data, data.isFavorite)
@@ -154,6 +162,7 @@ class MainAdapter(
         var imgResto: ImageView
         var imgFavorite: ImageView
         var btnAddToFavorites: LinearLayout
+        var tvFavorites: TextView
         var tvNameResto: TextView
         var tvAddress: TextView
         var tvRating: TextView
@@ -164,6 +173,7 @@ class MainAdapter(
             imgResto = itemView.imgResto
             imgFavorite = itemView.imgFavorite
             btnAddToFavorites = itemView.btnAddToFavorites
+            tvFavorites = itemView.tvFavorites
             tvNameResto = itemView.tvNameResto
             tvRating = itemView.tvRating
             tvAddress = itemView.tvAddress
