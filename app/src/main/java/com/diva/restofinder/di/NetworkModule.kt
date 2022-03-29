@@ -1,7 +1,9 @@
 package com.diva.restofinder.di
 
+import com.androidnetworking.interceptors.HttpLoggingInterceptor
 import com.diva.restofinder.networking.ApiEndpoint
 import com.diva.restofinder.networking.ZomatoAPI
+import com.google.gson.GsonBuilder
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -18,11 +20,17 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideHttpClient(): OkHttpClient =
-        OkHttpClient.Builder()
+    fun provideHttpClient(): OkHttpClient {
+
+        val logging = HttpLoggingInterceptor()
+        logging.level = HttpLoggingInterceptor.Level.BODY
+
+        return OkHttpClient.Builder()
+            .addInterceptor(logging)
             .readTimeout(15, TimeUnit.SECONDS)
             .connectTimeout(15, TimeUnit.SECONDS)
             .build()
+    }
 
     @Provides
     @Singleton

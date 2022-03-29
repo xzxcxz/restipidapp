@@ -279,24 +279,6 @@
 
             </LinearLayout>
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="start"
-                android:layout_marginTop="10dp"
-                android:fontFamily="@font/gravity_bold"
-                android:text="Latest Review :"
-                android:textColor="@color/colorBlack"
-                android:textSize="18sp"
-                android:textStyle="bold" />
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rvReviewResto"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_marginTop="20dp"
-                android:nestedScrollingEnabled="false" />
-
         </LinearLayout>
 
     </androidx.core.widget.NestedScrollView>

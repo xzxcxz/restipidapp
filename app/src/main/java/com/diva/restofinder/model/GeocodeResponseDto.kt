@@ -1,12 +1,12 @@
 package com.diva.restofinder.model
 
+import android.os.Parcelable
 import com.google.gson.annotations.SerializedName
+import kotlinx.android.parcel.Parcelize
 import java.io.Serializable
 
+@Parcelize
 data class GeocodeResponseDto(
-    val link: String,
-    val locationDto: LocationDto,
     @SerializedName("nearby_restaurants")
-    val nearbyRestaurantResponses: List<RestaurantResponseDto>,
-    val popularityDto: PopularityDto
-): Serializable
+    val nearbyRestaurant: List<RestaurantResponseDto>
+): Parcelable

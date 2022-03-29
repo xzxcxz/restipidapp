@@ -10,15 +10,16 @@ import androidx.recyclerview.widget.RecyclerView
 import com.diva.restofinder.R
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.diva.restofinder.model.CollectionDataDto
 import kotlinx.android.synthetic.main.list_item_main_horizontal.view.*
 
-class MainAdapterHorizontal (
-
-    private val mContext: Context, private val items: List<HorizontalDto>)
-    : RecyclerView.Adapter<MainAdapterHorizontal.ViewHolder>() {
+class MainAdapterHorizontal(
+    private val mContext: Context, private val items: List<CollectionDataDto>
+) : RecyclerView.Adapter<MainAdapterHorizontal.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.list_item_main_horizontal, parent, false)
+        val view = LayoutInflater.from(parent.context)
+            .inflate(R.layout.list_item_main_horizontal, parent, false)
         return ViewHolder(view)
     }
 

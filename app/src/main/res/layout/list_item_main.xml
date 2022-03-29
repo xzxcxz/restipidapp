@@ -64,6 +64,7 @@
 
             </RelativeLayout>
 
+
             <TextView
                 android:id="@+id/tvAddress"
                 android:layout_width="wrap_content"
@@ -77,6 +78,47 @@
                 android:text="@string/app_name"
                 android:textColor="@color/colorWhite"
                 android:textSize="10sp" />
+
+            <LinearLayout
+                android:id="@+id/btnAddToFavorites"
+                android:background="@drawable/bg_rounded"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="8dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:id="@+id/tvFavorites"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_rounded"
+                    android:ellipsize="end"
+                    android:layout_marginStart="4dp"
+                    android:fontFamily="@font/gravity_bold"
+                    android:maxLines="1"
+                    android:layout_gravity="center_vertical"
+                    android:padding="5dp"
+                    android:text="Add To Favorites"
+                    android:textColor="@color/colorWhite"
+                    android:textSize="10sp" />
+
+                <ImageView
+                    android:id="@+id/imgFavorite"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="4dp"
+
+                    android:ellipsize="end"
+                    android:fontFamily="@font/gravity_bold"
+                    android:maxLines="1"
+                    android:padding="5dp"
+                    android:src="@drawable/ic_favorite_uncheck"
+                    android:text="@string/app_name"
+                    android:textColor="@color/colorWhite" />
+
+            </LinearLayout>
+
+
 
         </LinearLayout>
 

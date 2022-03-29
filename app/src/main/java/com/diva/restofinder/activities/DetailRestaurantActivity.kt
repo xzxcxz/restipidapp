@@ -7,6 +7,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.MenuItem
 import android.view.View
 import android.view.WindowManager
@@ -17,7 +18,9 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.diva.restofinder.R
 import com.diva.restofinder.adapter.HighlightsAdapter
-import com.diva.restofinder.model.RestaurantResponseDto
+import com.diva.restofinder.db.FavoriteRestaurantDao
+import com.diva.restofinder.model.RestaurantDataDto
+import com.diva.restofinder.model.RestaurantDetailResponseDto
 import com.diva.restofinder.networking.ZomatoAPI
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.android.synthetic.main.activity_detail_resto.*
@@ -40,10 +43,15 @@ class DetailRestaurantActivity : AppCompatActivity() {
     private var title: String? = null
     private var rating: String? = null
     private var restaurantName: String? = null
-    private var restaurantResponseDto: RestaurantResponseDto? = null
+    private var restaurantObj: RestaurantDataDto? = null
+
+    private var isSaved = false
 
     @Inject
     lateinit var zomatoAPI: ZomatoAPI
+
+    @Inject
+    lateinit var favoriteRestaurantDao: FavoriteRestaurantDao
 
     @SuppressLint("Assert", "SetTextI18n", "ObsoleteSdkInt")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -63,18 +71,22 @@ class DetailRestaurantActivity : AppCompatActivity() {
         mProgressBar?.setMessage("Showing data...")
 
         toolbar.title = ""
-        setSupportActionBar(toolbar)
-        assert(supportActionBar != null)
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+//        setSupportActionBar(toolbar)
+//        assert(supportActionBar != null)
+//        supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
-        restaurantResponseDto = intent.getSerializableExtra(DETAIL_RESTO) as RestaurantResponseDto
-        if (restaurantResponseDto != null) {
-            restaurantId = restaurantResponseDto?.id
-            imageCover = restaurantResponseDto?.thumbRestaurant
-            ratingValue = restaurantResponseDto!!.rating.ratingValue
-            title = restaurantResponseDto?.name
-            rating = restaurantResponseDto?.rating?.ratingText
-            restaurantName = restaurantResponseDto?.name
+        isSaved = intent.getBooleanExtra(IS_SAVED, false)
+
+        restaurantObj = intent.getParcelableExtra(DETAIL) as RestaurantDataDto?
+        if (restaurantObj != null) {
+            Log.d("DetailActivity", restaurantObj.toString())
+
+            restaurantId = restaurantObj?.id
+            imageCover = restaurantObj?.thumbRestaurant
+            ratingValue = restaurantObj?.rating?.ratingValue ?: 0.0
+            title = restaurantObj?.name
+            rating = restaurantObj?.rating?.ratingText
+            restaurantName = restaurantObj?.name
 
             tvTitle.text = title
             tvRestoName.text = restaurantName
@@ -86,10 +98,17 @@ class DetailRestaurantActivity : AppCompatActivity() {
             ratingResto.stepSize = 0.5.toFloat()
             ratingResto.rating = newValue
 
-            Glide.with(this)
-                .load(imageCover)
-                .diskCacheStrategy(DiskCacheStrategy.ALL)
-                .into(imgCover)
+            if (isSaved) {
+                Glide.with(this)
+                    .load(restaurantObj?.thumbRestaurantBitmap)
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                    .into(imgCover)
+            } else {
+                Glide.with(this)
+                    .load(imageCover)
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                    .into(imgCover)
+            }
 
             //method get Highlight
             showRecyclerViewList()
@@ -111,7 +130,6 @@ class DetailRestaurantActivity : AppCompatActivity() {
         rvHighlights.adapter = highlightsAdapter
     }
 
-    @SuppressLint("SetTextI18n", "NotifyDataSetChanged")
     private fun getDetailRestaurant() {
         mProgressBar?.show()
 //        AndroidNetworking.get(ApiEndpoint.BASEURL + ApiEndpoint.DetailRestaurant + IdResto)
@@ -186,62 +204,91 @@ class DetailRestaurantActivity : AppCompatActivity() {
 //                }
 //            })
 
-        CoroutineScope(Dispatchers.IO).launch {
+        if (isSaved) {
 
-            val response = withContext(Dispatchers.IO) {
-                zomatoAPI.getRestaurantDetail(
-                    restaurantId ?: ""
-                )
-            }
-
-            withContext(Dispatchers.Main) {
-                mProgressBar?.dismiss()
-            }
-
-            if (response.isSuccessful) {
-                response.body()?.let { res ->
-                    if (res.highlights.isNotEmpty()) {
-                        modelHighlightResponses.clear()
-                        modelHighlightResponses.addAll(res.highlights)
-                    }
+            CoroutineScope(Dispatchers.IO).launch {
+                restaurantObj?.let { data ->
+                    val restaurantDetail =
+                        favoriteRestaurantDao.getRestaurantDetailById(data.id)
 
                     withContext(Dispatchers.Main) {
-                        tvEstablishment.text = res.establishment.toString()
-                        tvLocalityVerbose.text = res.location.locality
-                        tvAverageCost.text =
-                            "${res.currency} ${res.averageCostForTwo} / ${res.priceRange} person"
-                        tvAddress.text = res.location.address
-                        tvAddress.text = res.timings
-
-                        llRoute.setOnClickListener {
-                            val intent = Intent(
-                                Intent.ACTION_VIEW,
-                                Uri.parse("http://maps.google.com/maps?daddr=${res.location.latitude},${res.location.longitude}")
-                            )
-                            startActivity(intent)
-                        }
-
-                        llTelpon.setOnClickListener {
-                            val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:${res.phoneNumbers}"))
-                            startActivity(intent)
-                        }
-
-                        llWebsite.setOnClickListener {
-                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(res.url))
-                            startActivity(intent)
-                        }
-
-                        highlightsAdapter?.notifyDataSetChanged()
+                        Log.d("DetailActivity", data.toString())
+                        mProgressBar?.dismiss()
+                        displayRestaurantDetail(restaurantDetail)
                     }
                 }
-            } else {
+
+            }
+        } else {
+            CoroutineScope(Dispatchers.IO).launch {
+
+                val response = withContext(Dispatchers.IO) {
+                    zomatoAPI.getRestaurantDetail(
+                        restaurantId ?: ""
+                    )
+                }
+
                 withContext(Dispatchers.Main) {
                     mProgressBar?.dismiss()
-                    Toast.makeText(this@DetailRestaurantActivity, "No internet connection!", Toast.LENGTH_SHORT)
-                        .show()
+                }
+
+                if (response.isSuccessful) {
+                    response.body()?.let { res ->
+                        withContext(Dispatchers.Main) {
+                            Log.d("DetailActivity", res.toString())
+                            displayRestaurantDetail(res)
+                        }
+                    }
+                } else {
+                    withContext(Dispatchers.Main) {
+                        mProgressBar?.dismiss()
+                        Toast.makeText(
+                            this@DetailRestaurantActivity,
+                            "No internet connection!",
+                            Toast.LENGTH_SHORT
+                        )
+                            .show()
+                    }
                 }
             }
         }
+
+    }
+
+    @SuppressLint("SetTextI18n", "NotifyDataSetChanged")
+    private fun displayRestaurantDetail(restaurantDetail: RestaurantDetailResponseDto) {
+        restaurantDetail.highlights?.let {
+            modelHighlightResponses.clear()
+            modelHighlightResponses.addAll(restaurantDetail.highlights)
+        }
+
+        tvEstablishment.text = restaurantDetail.establishment.toString()
+        tvLocalityVerbose.text = restaurantDetail.location?.locality
+        tvAverageCost.text =
+            "${restaurantDetail.currency} ${restaurantDetail.averageCostForTwo} / ${restaurantDetail.priceRange} person"
+        tvAddress.text = restaurantDetail.location?.address
+        tvAddress.text = restaurantDetail.timings
+
+        llRoute.setOnClickListener {
+            val intent = Intent(
+                Intent.ACTION_VIEW,
+                Uri.parse("http://maps.google.com/maps?daddr=${restaurantDetail.location?.latitude},${restaurantDetail.location?.longitude}")
+            )
+            startActivity(intent)
+        }
+
+        llTelpon.setOnClickListener {
+            val intent =
+                Intent(Intent.ACTION_DIAL, Uri.parse("tel:${restaurantDetail.phoneNumbers}"))
+            startActivity(intent)
+        }
+
+        llWebsite.setOnClickListener {
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(restaurantDetail.url))
+            startActivity(intent)
+        }
+
+        highlightsAdapter?.notifyDataSetChanged()
     }
 
 //    private fun getReviewResto() {
@@ -292,7 +339,8 @@ class DetailRestaurantActivity : AppCompatActivity() {
     }
 
     companion object {
-        const val DETAIL_RESTO = "detailResto"
+        const val DETAIL = "restaurant_detail"
+        const val IS_SAVED = "is_saved"
         fun setWindowFlag(activity: Activity, bits: Int, on: Boolean) {
             val window = activity.window
             val layoutParams = window.attributes

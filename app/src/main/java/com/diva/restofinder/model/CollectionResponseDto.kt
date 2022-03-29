@@ -4,6 +4,7 @@ import com.google.gson.annotations.SerializedName
 import java.io.Serializable
 
 data class CollectionResponseDto(
+    @SerializedName("collections")
     val collectionEntities: List<CollectionEntity>,
     @SerializedName("display_text")
     val displayText: String,
