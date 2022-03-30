@@ -75,47 +75,43 @@ class MainActivity : AppCompatActivity(), LocationListener {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        try {
 
-            val myVersion = Build.VERSION.SDK_INT
-            if (myVersion > Build.VERSION_CODES.LOLLIPOP_MR1 &&
-                !checkIfAlreadyHavePermission() &&
-                !checkIfAlreadyHavePermission2()
-            ) {
-                requestPermissions(permissionArrays, 101)
+        val myVersion = Build.VERSION.SDK_INT
+        if (myVersion > Build.VERSION_CODES.LOLLIPOP_MR1 &&
+            !checkIfAlreadyHavePermission() &&
+            !checkIfAlreadyHavePermission2()
+        ) {
+            requestPermissions(permissionArrays, 101)
+        }
+
+        mProgressBar = ProgressDialog(this)
+        mProgressBar?.setTitle("Please wait")
+        mProgressBar?.setCancelable(false)
+        mProgressBar?.setMessage("Showing data...")
+
+        // method to show recyclerview and attach adapter.
+        showRecyclerRestaurant()
+
+        searchResto.queryHint = "Search restaurant"
+        searchResto.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String): Boolean {
+                setSearchRestaurant(query)
+                return false
             }
 
-            mProgressBar = ProgressDialog(this)
-            mProgressBar?.setTitle("Please wait")
-            mProgressBar?.setCancelable(false)
-            mProgressBar?.setMessage("Showing data...")
+            override fun onQueryTextChange(newText: String): Boolean {
+                if (newText == "") getListRestaurant()
+                return false
+            }
+        })
 
-            // method to show recyclerview and attach adapter.
-            showRecyclerRestaurant()
+        val searchPlateId = searchResto.context
+            .resources.getIdentifier("android:id/search_plate", null, null)
+        val searchPlate = searchResto.findViewById<View>(searchPlateId)
+        searchPlate?.setBackgroundColor(Color.TRANSPARENT)
 
-            searchResto.queryHint = "Search restaurant"
-            searchResto.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-                override fun onQueryTextSubmit(query: String): Boolean {
-                    setSearchRestaurant(query)
-                    return false
-                }
-
-                override fun onQueryTextChange(newText: String): Boolean {
-                    if (newText == "") getListRestaurant()
-                    return false
-                }
-            })
-
-            val searchPlateId = searchResto.context
-                .resources.getIdentifier("android:id/search_plate", null, null)
-            val searchPlate = searchResto.findViewById<View>(searchPlateId)
-            searchPlate?.setBackgroundColor(Color.TRANSPARENT)
-
-            // method get location (latitude and longitude)
-            getLatLong()
-        } catch (ex: Exception) {
-            startActivity(Intent(this, FavoritesActivity::class.java))
-        }
+        // method get location (latitude and longitude)
+        getLatLong()
     }
 
     private fun showRecyclerRestaurant() {
@@ -173,7 +169,10 @@ class MainActivity : AppCompatActivity(), LocationListener {
                                         .transform(CenterCrop(), RoundedCorners(25))
                                         .diskCacheStrategy(DiskCacheStrategy.ALL)
                                         .into(object : CustomTarget<Bitmap>() {
-                                            override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
+                                            override fun onResourceReady(
+                                                resource: Bitmap,
+                                                transition: Transition<in Bitmap>?
+                                            ) {
                                                 res.thumbBitmap = resource
                                             }
 
@@ -292,33 +291,23 @@ class MainActivity : AppCompatActivity(), LocationListener {
             return
         }
 
-        try {
 
-            val locationManager = getSystemService(LOCATION_SERVICE) as LocationManager
-            val criteria = Criteria()
-            val provider = locationManager.getBestProvider(criteria, true)
-            val location = locationManager.getLastKnownLocation(provider.toString())
+        val locationManager = getSystemService(LOCATION_SERVICE) as LocationManager
+        val criteria = Criteria()
+        val provider = locationManager.getBestProvider(criteria, true)
+        val location = locationManager.getLastKnownLocation(provider.toString())
 
-            if (location != null) {
-                onLocationChanged(location)
+        if (location != null) {
+            onLocationChanged(location)
 
-                // method to get list of restaurants at first run of application.
-                getListCollection()
+            // method to get list of restaurants at first run of application.
+            getListCollection()
 
-                // method to get list of restaurants at first run of application.
-                getListRestaurant()
+            // method to get list of restaurants at first run of application.
+            getListRestaurant()
 
-            } else {
-                locationManager.requestLocationUpdates(provider.toString(), 20000, 0f, this)
-            }
-        } catch (ex: Exception) {
-
-            mProgressBar?.dismiss()
-            Toast.makeText(
-                this@MainActivity,
-                "No internet connection!",
-                Toast.LENGTH_SHORT
-            ).show()
+        } else {
+            locationManager.requestLocationUpdates(provider.toString(), 20000, 0f, this)
         }
     }
 
@@ -438,67 +427,55 @@ class MainActivity : AppCompatActivity(), LocationListener {
         mProgressBar?.show()
 
         CoroutineScope(Dispatchers.IO).launch {
-            try {
-                val response = withContext(Dispatchers.IO) {
-                    zomatoAPI.getGeocode(
-                        lat.toString(),
-                        lng.toString()
-                    )
-                }
+            val response = withContext(Dispatchers.IO) {
+                zomatoAPI.getGeocode(
+                    lat.toString(),
+                    lng.toString()
+                )
+            }
 
-                withContext(Dispatchers.Main) {
-                    mProgressBar?.dismiss()
-                }
+            withContext(Dispatchers.Main) {
+                mProgressBar?.dismiss()
+            }
 
-                if (restaurants.isNotEmpty()) restaurants.clear()
+            if (restaurants.isNotEmpty()) restaurants.clear()
 
-                if (response.isSuccessful) {
+            if (response.isSuccessful) {
 
-                    response.body()?.let { geocode ->
-                        geocode.nearbyRestaurant.forEach { item ->
+                response.body()?.let { geocode ->
+                    geocode.nearbyRestaurant.forEach { item ->
 
-                            item.restaurant.let { data ->
+                        item.restaurant.let { data ->
 
-                                restaurants.add(
-                                    RestaurantResponseDto(
-                                        RestaurantDataDto(
-                                            roomId = data.id,
-                                            id = data.id,
-                                            name = data.name,
-                                            thumbRestaurant = data.thumbRestaurant,
-                                            url = data.url,
-                                            isFavorite = favoriteRestaurantDao.isRestaurantExisting(
-                                                data.id
-                                            ) == 1,
-                                            restaurantLocation = data.restaurantLocation,
-                                            rating = data.rating
-                                        )
+                            restaurants.add(
+                                RestaurantResponseDto(
+                                    RestaurantDataDto(
+                                        roomId = data.id,
+                                        id = data.id,
+                                        name = data.name,
+                                        thumbRestaurant = data.thumbRestaurant,
+                                        url = data.url,
+                                        isFavorite = favoriteRestaurantDao.isRestaurantExisting(
+                                            data.id
+                                        ) == 1,
+                                        restaurantLocation = data.restaurantLocation,
+                                        rating = data.rating
                                     )
                                 )
-                            }
-
+                            )
                         }
 
                     }
 
-
-                    withContext(Dispatchers.Main) {
-                        // Log.d("MainActivity", restaurants.toString())
-                        showRecyclerRestaurant()
-                        mainAdapter.notifyDataSetChanged()
-                    }
-                } else {
-                    withContext(Dispatchers.Main) {
-                        mProgressBar?.dismiss()
-                        Toast.makeText(
-                            this@MainActivity,
-                            "No internet connection!",
-                            Toast.LENGTH_SHORT
-                        )
-                            .show()
-                    }
                 }
-            } catch (ex: Exception) {
+
+
+                withContext(Dispatchers.Main) {
+                    // Log.d("MainActivity", restaurants.toString())
+                    showRecyclerRestaurant()
+                    mainAdapter.notifyDataSetChanged()
+                }
+            } else {
                 withContext(Dispatchers.Main) {
                     mProgressBar?.dismiss()
                     Toast.makeText(
