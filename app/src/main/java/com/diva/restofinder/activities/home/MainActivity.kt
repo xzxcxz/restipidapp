@@ -100,7 +100,7 @@ class MainActivity : AppCompatActivity(), LocationListener {
             }
 
             override fun onQueryTextChange(newText: String): Boolean {
-                if (newText == "") getListRestaurant()
+                if (newText.isBlank()) getLatLong()
                 return false
             }
         })
@@ -296,6 +296,15 @@ class MainActivity : AppCompatActivity(), LocationListener {
         val criteria = Criteria()
         val provider = locationManager.getBestProvider(criteria, true)
         val location = locationManager.getLastKnownLocation(provider.toString())
+
+        if(lat > 0.0 && lng > 0.0) {
+            // method to get list of restaurants at first run of application.
+            getListCollection()
+
+            // method to get list of restaurants at first run of application.
+            getListRestaurant()
+            return
+        }
 
         if (location != null) {
             onLocationChanged(location)

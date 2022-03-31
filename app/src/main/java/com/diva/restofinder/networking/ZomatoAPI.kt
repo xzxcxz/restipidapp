@@ -35,8 +35,8 @@ interface ZomatoAPI {
         @Query("lat") latitude: String,
         @Query("lon") longitude: String,
         @Query("radius") radius: Int = 20000,
-        @Query("sort") sort: String = "cost",
-        @Query("order") order: String = "asc"
+//        @Query("sort") sort: String = "cost",
+//        @Query("order") order: String = "asc"
     ): Response<SearchResponseDto>
 
 }
